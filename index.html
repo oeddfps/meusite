@@ -1,4 +1,4 @@
-https://oeddfps.github.io/meusite 
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -34,29 +34,7 @@ https://oeddfps.github.io/meusite
 
   
 </head>
-<body>
-  <!-- Verificação de IP -->
-  <script>
-    async function checkIPAuthorization() {
-      try {
-        const response = await fetch("user-handler.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ acao: "check_ip" }),
-        });
-        const result = await response.json();
-        if (result.success && result.registered) {
-          console.log("IP autorizado. Bem-vindo!");
-        } else {
-          window.location.href = "registerform.html";
-        }
-      } catch (error) {
-        console.error("Erro ao verificar o IP:", error);
-        window.location.href = "registerform.html";
-      }
-    }
-    document.addEventListener("DOMContentLoaded", checkIPAuthorization);
-  </script>
+
 
   <!-- Script para feedback visual (mensagens temporárias) -->
   <script>
