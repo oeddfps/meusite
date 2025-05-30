@@ -1,582 +1,88 @@
-
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="estilo.css">
-  <title>Sapphir</title>
-
-  <!-- SEO Meta Tags -->
-  <meta
-    name="description"
-    content="Ferramenta Sapphir AI para gravação e transcrição de áudio com análise de anamnese."
-  />
-  <meta
-    name="keywords"
-    content="Sapphir AI, gravação, transcrição, anamnese, inteligência artificial"
-  />
-  <meta name="author" content="Sapphir AI" />
-
-  <!-- Bootstrap CSS -->
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-
-  <!-- Ícones do Bootstrap (para o ícone de coração) -->
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-  />
-
-  <link rel="preload" href="background.png" as="image" />
-
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site de Jogos - Edson Monteiro</title>
 </head>
+<body>
+ 
+  <header>
+    <div class="container">
+     
+      <h1>AVALIACAO </h1>
+      
+      <nav>
+        <ul>
 
-
-  <!-- Script para feedback visual (mensagens temporárias) -->
-  <script>
-    function showFeedback(mensagem) {
-      const feedback = document.createElement("div");
-      feedback.className = "feedback-message";
-      feedback.textContent = mensagem;
-      document.body.appendChild(feedback);
-      setTimeout(() => {
-        feedback.style.opacity = "0";
-        setTimeout(() => feedback.remove(), 300);
-      }, 2000);
-    }
-  </script>
-
-  <!-- Script principal de gravação e processamento com timer que congela -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      let isRecording = false;
-      let timerInterval;
-      let seconds = 0;
-      const recordButton = document.getElementById("recordButton");
-      const timerDisplay = document.getElementById("timer");
-      const transcriptionArea = document.getElementById("editableTranscription");
-
-      // Inicia o cronômetro
-      function startTimer() {
-        timerInterval = setInterval(() => {
-          seconds++;
-          const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
-          const secs = String(seconds % 60).padStart(2, "0");
-          timerDisplay.textContent = `${minutes}:${secs}`;
-        }, 1000);
-      }
-
-      // Reseta o cronômetro
-      function resetTimer() {
-        clearInterval(timerInterval);
-        seconds = 0;
-        timerDisplay.textContent = "00:00";
-      }
-
-      // Atualiza o estado do botão e aparência do timer
-      function updateButtonState(state) {
-        switch (state) {
-          case "recording":
-            recordButton.textContent = "Parar Gravação";
-            recordButton.disabled = false;
-            recordButton.classList.remove("processing");
-            timerDisplay.classList.remove("processing");
-            break;
-          case "processing":
-            recordButton.textContent = "⏳ Processando...";
-            recordButton.disabled = true;
-            recordButton.classList.add("processing");
-            timerDisplay.classList.add("processing");
-            break;
-          case "idle":
-            recordButton.textContent = "Iniciar Gravação";
-            recordButton.disabled = false;
-            recordButton.classList.remove("processing");
-            timerDisplay.classList.remove("processing");
-            break;
-        }
-      }
-
-      recordButton.addEventListener("click", async () => {
-        if (!isRecording) {
-          // Inicia a gravação
-          isRecording = true;
-          updateButtonState("recording");
-          startTimer();
-        } else {
-          // Para a gravação e inicia o processamento
-          isRecording = false;
-          updateButtonState("processing");
-          clearInterval(timerInterval); // Congela o timer no valor atual
-
-          // Exibe mensagem de processamento no campo de transcrição
-          transcriptionArea.value = "Processando áudio... Aguarde.";
-
-          try {
-            const response = await fetch("transcrever.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ acao: "transcrever" }),
-            });
-            const resultado = await response.json();
-
-            if (resultado && resultado.transcricao) {
-              // Preenche campos na tela
-              transcriptionArea.value = resultado.transcricao;
-              document.getElementById("resumo").textContent =
-                resultado.resumo || "Será exibido aqui assim que a transcrição for processada.";
-              document.getElementById("topicos").textContent =
-                resultado.topicos || "Os principais tópicos abordados serão listados aqui.";
-              document.getElementById("tratamentos").textContent =
-                resultado.tratamentos || "Sugestões de tratamentos com base na anamnese aparecerão aqui.";
-            } else {
-              throw new Error("Transcrição vazia ou retorno inválido");
-            }
-          } catch (error) {
-            console.error("Erro na transcrição:", error);
-            if (
-              !transcriptionArea.value ||
-              transcriptionArea.value.includes("Processando áudio")
-            ) {
-              alert("Aguarde o processamento da transcrição!");
-            }
-          } finally {
-            resetTimer();
-            updateButtonState("idle");
-          }
-        }
-      });
-    });
-
-    // Funções auxiliares (copiar texto e enviar anamnese)
-    function copiarTexto(id) {
-      const el = document.getElementById(id);
-      const texto = el.value !== undefined ? el.value : el.textContent;
-      navigator.clipboard
-        .writeText(texto)
-        .then(() => alert("Texto copiado!"))
-        .catch(() => alert("Erro ao copiar!"));
-    }
-    function enviarTextoAnamnese(texto) {
-      if (texto.trim() === "") {
-        alert("Transcrição vazia.");
-      } else {
-        alert("Anamnese gerada com sucesso!");
-        // Aqui você pode enviar o texto ao backend, se desejar.
-      }
-    }
-  </script>
-
-  <!-- Novo Cabeçalho -->
-  <header class="header">
-    <img
-      src="https://sapphir-ai.com.br/coruja.png"
-      alt="Logo Sapphir AI"
-      id="welcomeIcon"
-    />
-    <div class="header-text">
-      <h1 class="header-title">Sapphir AI</h1>
-      <h2 class="header-subtitle">Seu assistente Inteligente</h2>
+        
+          <li><a href="#ver">Veja os nossos jogos</a></li>
+          <li><img src="jogos.jpg" alt="jogo2"></li>
+        </ul>
+      </nav>
     </div>
   </header>
 
-  <!-- Container principal -->
-  <div class="main-container">
-    <!-- Seção da esquerda: gravação, timer, campo de texto e botão anamnese -->
-    <div class="left-section text-center">
-      <div class="logo">
-        <img
-          src="https://sapphir-ai.com.br/sapphir1.png"
-          alt="Logo da Sapphir AI"
-        />
+
+  <main>
+ 
+    <section id="home" class="hero">
+      <div class="container">
+        <h2>lista de generos!</h2>
+        <p> RPG <BR> 
+        FPS <BR> </p>
+        <a href="https://www.youtube.com/watch?v=7jRDgSWIJ78" class="btn">Ver video do game 1 </a>
       </div>
-      <h1>Gravação de Áudio e Transcrição</h1>
-      <p>Clique no botão abaixo para iniciar e parar a gravação.</p>
-      <button id="recordButton">🎤 Iniciar Gravação</button>
-      <div
-        class="alert mt-2"
-        role="alert"
-        style="font-size: 0.9rem; padding: 8px 15px; background-color: #36c1e7; color: #fff; border: none;"
-      >
-        Atenção: A gravação não deve exceder 10 minutos.
-      </div>
+    </section>
 
-      <!-- Timer -->
-      <div id="timer" class="mt-3">00:00</div>
 
-      <!-- Campo de texto editável -->
-      <textarea
-        id="editableTranscription"
-        class="transcription-area mt-3"
-        placeholder="Texto Transcrito aparecerá aqui..."
-      ></textarea>
 
-      <!-- Botão Gerar Anamnese (ocupa mesma largura do campo de texto) -->
-      <button
-        onclick="enviarTextoAnamnese(document.getElementById('editableTranscription').value)"
-        class="anamnese-button mt-3 w-100"
-        style="max-width: 100%;"
-      >
-        Gerar Anamnese
-      </button>
-    </div>
+    <section id="ver" class="ver">
+      <div class="container">
+        <h2>Gostou de qual jogo?</h2>
+      
+        <div class="cards">
 
-    <!-- Seção da direita: resultados -->
-    <div class="right-section">
-      <!-- Resumo -->
-      <div class="result-section">
-        <h3>Resumo</h3>
-        <div class="d-flex flex-column flex-sm-row align-items-start justify-content-between">
-          <p id="resumo" class="mb-0 me-sm-3" style="flex: 1;">
-            Será exibido aqui assim que a transcrição for processada.
-          </p>
-          <button
-            class="btn btn-outline-primary btn-sm mt-3 mt-sm-0 copiar-btn"
-            onclick="copiarTexto('resumo')"
-          >
-            Copiar
-          </button>
+
+
+          <div class="card">
+            <h3>Game1</h3>
+            <p>Descrição do jogo.</p>
+            <div class="profile-container">
+  
+              <img class="profile-picture" src="img/logo1.jpg" alt="Logo1" alt="Foto do Jogo" onclick="showProfileAlert()">
+                <div class="buttons">
+                    <button class="button like-button" onclick="increaseLike()">Gostei</button>
+                </div>
+                <div class="count">
+                    <p id="like-count">Jogo um: 0</p>
+                </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Game 2</h3>
+            <p>Descrição do jogo.</p>
+            <img class="profile-picture" src="img/logo2.jpg" alt="Logo2" alt="Foto do Jogo" onclick="showProfileAlert2()">
+            <div class="buttons">
+                <button class="button like-button" onclick="Gostei2()">Gostei</button>
+            </div>
+            <div class="count">
+                <p id="gostei-count">Jogo dois: 0</p>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
+  
 
-      <!-- Tópicos -->
-      <div class="result-section">
-        <h3>Tópicos</h3>
-        <div class="d-flex flex-column flex-sm-row align-items-start justify-content-between">
-          <p id="topicos" class="mb-0 me-sm-3" style="flex: 1;">
-            Os principais tópicos abordados serão listados aqui.
-          </p>
-          <button
-            class="btn btn-outline-primary btn-sm mt-3 mt-sm-0 copiar-btn"
-            onclick="copiarTexto('topicos')"
-          >
-            Copiar
-          </button>
-        </div>
-      </div>
-
-      <!-- Tratamentos -->
-      <div class="result-section">
-        <h3>Tratamentos</h3>
-        <div class="d-flex flex-column flex-sm-row align-items-start justify-content-between">
-          <p id="tratamentos" class="mb-0 me-sm-3" style="flex: 1;">
-            Sugestões de tratamentos com base na anamnese aparecerão aqui.
-          </p>
-          <button
-            class="btn btn-outline-primary btn-sm mt-3 mt-sm-0 copiar-btn"
-            onclick="copiarTexto('tratamentos')"
-          >
-            Copiar
-          </button>
-        </div>
-      </div>
+  
+  <footer>
+    <div class="container">
+      <p>&copy; 2025A Edson Monteiro. </p>
     </div>
-  </div>
-
-  <!-- Modal de Confirmação de Anamnese -->
-  <div
-    class="modal fade"
-    id="confirmAnamneseModal"
-    tabindex="-1"
-    aria-labelledby="confirmAnamneseLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog">
-      <div
-        class="modal-content"
-        style="background: linear-gradient(rgba(29, 58, 90, 0.8), rgba(29, 58, 90, 0.8)), url('https://sapphir-ai.com.br/pattern.png') no-repeat center center; background-size: cover; border-radius: 12px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);"
-      >
-        <div class="modal-header border-0">
-          <h5
-            class="modal-title"
-            id="confirmAnamneseLabel"
-            style="font-family: 'Goodly-Semibold', sans-serif; color: #e2f0f7;"
-          >
-            <i class="bi bi-question-circle me-2"></i>Fazer anamnese?
-          </h5>
-          <button
-            type="button"
-            class="btn-close btn-close-white"
-            data-bs-dismiss="modal"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div
-          class="modal-body"
-          style="color: #e2f0f7; font-family: 'Metropolis-MediumItalic'; font-size: 18px;"
-        >
-          Deseja realizar a anamnese com o áudio transcrito?
-        </div>
-        <div class="modal-footer border-0 d-flex justify-content-between">
-          <button
-            type="button"
-            class="btn btn-outline-light"
-            data-bs-dismiss="modal"
-            style="border-radius: 25px; padding: 12px 25px;"
-          >
-            Não
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            id="confirmAnamnese"
-            style="background-color: #36c1e7; border: none; border-radius: 25px; padding: 12px 25px;"
-          >
-            Sim
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal de Boas-Vindas -->
-  <div
-    class="modal fade"
-    id="welcomeModal"
-    tabindex="-1"
-    aria-labelledby="welcomeModalLabel"
-    aria-hidden="true"
-  >
-    <div class="modal-dialog modal-dialog-centered">
-      <div
-        class="modal-content"
-        style="background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);"
-      >
-        <div
-          class="modal-header"
-          style="border-bottom: 1px solid #ddd;"
-        >
-          <h5
-            class="modal-title"
-            id="welcomeModalLabel"
-            style="font-family: 'Goodly-Semibold', sans-serif; color: #1d3a5a;"
-          >
-            Bem-vindo(a)!
-          </h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"
-            aria-label="Fechar"
-          ></button>
-        </div>
-        <div
-          class="modal-body"
-          style="font-family: 'Metropolis-MediumItalic'; color: #1d3a5a;"
-        >
-          <p id="modalWelcomeMessage">Olá! Seja bem-vindo(a) ao Sapphir AI.</p>
-        </div>
-        <div
-          class="modal-footer"
-          style="border-top: 1px solid #ddd;"
-        >
-          <button
-            type="button"
-            class="btn btn-primary"
-            data-bs-dismiss="modal"
-            style="background-color: #36c1e7; border: none; border-radius: 25px; padding: 10px 20px;"
-          >
-            Continuar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Balão de Boas-Vindas -->
-  <div id="welcomeBalloon" class="speech-bubble d-none">
-    <div class="speech-bubble-header">
-      <h5>Olá, assinante!</h5>
-    </div>
-    <div class="speech-bubble-body">
-      <p id="welcomeMessage">Que bom te ver aqui, 😊</p>
-    </div>
-  </div>
-
-  <!-- Bootstrap JS -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
-  ></script>
-  <script src="https://sapphir-ai.com.br/transcrever.js"></script>
-
-  <!-- Script para exibir o modal de boas-vindas -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const modalElement = document.getElementById("welcomeModal");
-      const modal = new bootstrap.Modal(modalElement, {});
-      modal.show();
-    });
-  </script>
-
-  <!-- Script para atualizar a mensagem de boas-vindas com o nome do usuário -->
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        const response = await fetch("user-handler.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ acao: "obter_nome" }),
-        });
-        const result = await response.json();
-        if (result.sucesso) {
-          const modalMessageElement = document.getElementById("modalWelcomeMessage");
-          modalMessageElement.textContent = `Olá, ${result.nome}! Seja bem-vindo(a) ao Sapphir AI.`;
-        } else {
-          console.error("Erro ao obter dados do usuário:", result.mensagem);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar os dados do usuário:", error);
-      }
-    });
-  </script>
-
-  <script>
-    document
-      .getElementById("welcomeIcon")
-      .addEventListener("click", async () => {
-        try {
-          const response = await fetch("user-handler.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ acao: "obter_nome" }),
-          });
-          const result = await response.json();
-          if (result.sucesso) {
-            const balloon = document.getElementById("welcomeBalloon");
-            const message = document.getElementById("welcomeMessage");
-            message.textContent = `Olá, ${result.nome}! Que bom te ver aqui. 😊`;
-            const header = document.querySelector(".header");
-            const headerRect = header.getBoundingClientRect();
-            balloon.style.top = `${headerRect.bottom + window.scrollY + 10}px`;
-            balloon.style.left = `${
-              headerRect.left +
-              headerRect.width / 2 -
-              balloon.offsetWidth / 2
-            }px`;
-            balloon.classList.remove("d-none");
-            balloon.style.opacity = "1";
-            balloon.style.transform = "translateY(0)";
-            setTimeout(() => {
-              balloon.style.opacity = "0";
-              balloon.style.transform = "translateY(-10px)";
-              setTimeout(() => balloon.classList.add("d-none"), 300);
-            }, 5000);
-          } else {
-            alert(result.mensagem || "Erro ao obter os dados do usuário.");
-          }
-        } catch (error) {
-          console.error("Erro ao buscar os dados do usuário:", error);
-          alert("Erro ao se comunicar com o servidor.");
-        }
-      });
-  </script>
-
-  <!-- Botão do Chatbot -->
-  <button class="chat-button" onclick="toggleChat()">
-    <img src="coruja.png" alt="Abrir Chatbot" />
-  </button>
-
-  <!-- Container do Chatbot -->
-  <div class="chat-container" id="chatContainer">
-    <div class="chat-header">
-      <div style="display: flex; align-items: center;">
-        <img
-          src="coruja.png"
-          alt="Assistente"
-          style="width: 25px; margin-right: 10px;"
-        />
-        <span>Assistente Sapphir</span>
-      </div>
-      <span class="close-chat" onclick="toggleChat()">❌</span>
-    </div>
-    <div class="chat-body" id="chatBody">
-      <div class="message assistant-message">
-        <img
-          src="coruja.png"
-          alt="Assistente"
-          style="width: 25px; margin-right: 8px;"
-        />
-        <span>Olá! Sou o assistente Sapphir. Como posso ajudar você hoje?</span>
-      </div>
-    </div>
-    <div class="chat-footer">
-      <input
-        type="text"
-        id="chatInput"
-        placeholder="Digite sua mensagem..."
-        onkeypress="handleKeyPress(event)"
-      />
-      <button onclick="sendMessage()">➤</button>
-    </div>
-  </div>
-
-  <!-- Script do Chatbot -->
-  <script>
-    const SERVER_URL = "https://anexarexames.onrender.com";
-
-    function toggleChat() {
-      const chat = document.getElementById("chatContainer");
-      chat.style.display = chat.style.display === "flex" ? "none" : "flex";
-    }
-
-    async function sendMessage() {
-      const input = document.getElementById("chatInput");
-      const message = input.value.trim();
-      if (message === "") return;
-
-      const chatBody = document.getElementById("chatBody");
-      const userMessage = document.createElement("div");
-      userMessage.classList.add("message", "user-message");
-      userMessage.textContent = message;
-      chatBody.appendChild(userMessage);
-
-      input.value = "";
-      chatBody.scrollTop = chatBody.scrollHeight;
-
-      try {
-        const response = await fetch(`${SERVER_URL}/chat`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: message }),
-        });
-        const result = await response.json();
-
-        const assistantMessage = document.createElement("div");
-        assistantMessage.classList.add("message", "assistant-message");
-
-        const owlIcon = document.createElement("img");
-        owlIcon.src = "coruja.png";
-        owlIcon.alt = "Assistente";
-        owlIcon.style.width = "25px";
-        owlIcon.style.marginRight = "8px";
-
-        const textSpan = document.createElement("span");
-        textSpan.textContent =
-          result.response || "Não consegui entender. Tente novamente.";
-
-        assistantMessage.appendChild(owlIcon);
-        assistantMessage.appendChild(textSpan);
-        chatBody.appendChild(assistantMessage);
-
-        chatBody.scrollTop = chatBody.scrollHeight;
-      } catch (error) {
-        console.error("Erro ao obter resposta:", error);
-        const errorMessage = document.createElement("div");
-        errorMessage.classList.add("message", "assistant-message");
-        errorMessage.textContent = "Erro ao conectar com o servidor.";
-        chatBody.appendChild(errorMessage);
-      }
-    }
-
-    function handleKeyPress(event) {
-      if (event.key === "Enter") {
-        sendMessage();
-      }
-    }
-  </script>
+  </footer>
+  <script src="avaliacao.js"></script>
+  <link rel="stylesheet" href="estilo.css">
 </body>
 </html>
